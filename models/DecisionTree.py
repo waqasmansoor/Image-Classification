@@ -27,10 +27,10 @@ def loadImages(X,Y,img_size=64):
         im=cv2.imread(str(ix))
         assert im is not None, f"Image Not Found {f}"
         h0, w0 = im.shape[:2]  # orig hw
-        r = img_size / max(h0, w0)  # ratio
+        r = h0 != img_size or w0 != img_size  # ratio
         if r != 1:  # if sizes are not equal
             interp = cv2.INTER_AREA
-            im = cv2.resize(im, (math.ceil(w0 * r), math.ceil(h0 * r)), interpolation=interp)
+            im=cv2.resize(im,(img_size,img_size),interpolation=interp)
         img = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img=img.ravel(order='K')
         D.append(img)
