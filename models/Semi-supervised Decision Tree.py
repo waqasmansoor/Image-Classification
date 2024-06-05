@@ -55,7 +55,6 @@ print(f"Total Images: {len(images)}")
 
 def predict_with_confidence(model, X, threshold=0.9):
     probas = model.predict_proba(X)
-    print(probas)
     max_probas = np.max(probas, axis=1)
     confident_indices = max_probas >= threshold
     confident_preds = np.argmax(probas[confident_indices], axis=1)
