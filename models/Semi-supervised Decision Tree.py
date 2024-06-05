@@ -2,14 +2,13 @@ import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
 import math
 from sklearn.model_selection import cross_validate, KFold
 from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score
 import cv2
 import numpy as np
 from sklearn.metrics import accuracy_score
-from sklearn.ensemble import RandomForestClassifier
 
 
 data_path = Path("/kaggle/input/venues-dataset-for-classification")
@@ -56,10 +55,9 @@ print(f"Total Images: {len(images)}")
 
 def predict_with_confidence(model, X, threshold=0.9):
     probas = model.predict_proba(X)
+    print(probas)
     max_probas = np.max(probas, axis=1)
-    second_max_probas = np.partition(probas, -2, axis=1)[:, -2]
-    margin = max_probas - second_max_probas
-    confident_indices = margin >= threshold
+    confident_indices = max_probas >= threshold
     confident_preds = np.argmax(probas[confident_indices], axis=1)
     return confident_indices, confident_preds
 
@@ -70,15 +68,11 @@ X_labeled = np.array(X_labeled)
 Y_labeled = np.array(Y_labeled)
 
 
-
-train_errors, test_errors, train_sizes = [], [], []
 print(f"Initial Labeled Size: {len(Y_labeled)}, Initial Unlabeled Size: {len(y_unlabeled)}")
 while True:
-    # Train model on labeled data
-    clf = RandomForestClassifier()
+    clf = DecisionTreeClassifier(max_depth=10, min_samples_split=10, min_samples_leaf=5, max_leaf_nodes=100)
     clf = clf.fit(X_labeled, Y_labeled)
     
-    # Prediction on unlabeled data with confidence
     X_unlabeled, _ = loadImages(x_unlabeled, y_unlabeled)
     X_unlabeled = np.array(X_unlabeled)
     
@@ -100,20 +94,3 @@ while True:
     
     print(f"Added {sum(confident_indices)} pseudo-labeled samples")
     
-    # Evaluate model
-    train_pred = clf.predict(X_labeled)
-    train_error = 1 - accuracy_score(train_pred, Y_labeled)
-    
-    Xtest, Ytest = loadImages(x_test, y_test)
-    Xtest = np.array(Xtest)
-    Ytest = np.array(Ytest)
-    
-    test_pred = clf.predict(Xtest)
-    test_error = 1 - accuracy_score(test_pred, Ytest)
-    
-    train_errors.append(train_error)
-    test_errors.append(test_error)
-    train_sizes.append(len(Y_labeled))
-    print(f"Current Labeled Size: {len(Y_labeled)}, Current Unlabeled Size: {len(y_unlabeled)}")
-    print(f"Train error: {train_error}, Test error: {test_error}, Train size: {len(Y_labeled)}")
-
