@@ -8,12 +8,15 @@ import argparse
 
 batch_size=8
 num_workers=2
-seed=47
+
+
+IMG_SIZE=64
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='sup', help='sup/unsup')
+    parser.add_argument("--pca",type=False,help="Implement PCA")
     
     opt = parser.parse_args()
 
@@ -29,9 +32,16 @@ if __name__ == '__main__':
 
     print(f"Total Images: {len(iu.images)}")
 
-    x_train,x_test,y_train,y_test=iu.split(0.3,0,False,True)
+    x_train,x_test,y_train,y_test=iu.split(0.3,0,val=False,shuffle=True)
     if opt.model == "sup":
-        pass
+        D,L=iu.readImages(x_train,x_test,IMG_SIZE,gray=False)
+        Dt,Lt=iu.readImages(y_train,y_test,IMG_SIZE,gray=False)
+
+        dt=iu.model()
+        dt=dt.fit(D,L)
+
+        result=iu.predict(dt,x_test,y_test)
+        print(f"Accuracy: {result}, Error: {1-result}")
 
 
     

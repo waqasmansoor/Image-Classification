@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 from sklearn.model_selection import train_test_split
+import cv2
+import numpy as np
 
 
 
@@ -9,6 +11,40 @@ class  imageUtils:
     def __init__(self,data_path):
         self.data_path=data_path
         self.split_seed=47
+
+
+    def grayscale(self,x):
+        gray = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
+    
+        return gray
+
+    def readImages(self,X,Y,img_size=64,gray=False):
+        D,L=[],[]
+        for ix,iy in zip(X,Y):
+            im=cv2.imread(str(ix))
+            if gray:
+                im=self.grayscale(im)
+            assert im is not None, f"Image Not Found {im}"
+            h0, w0 = im.shape[:2]  # orig hw
+            r = h0 != img_size or w0 != img_size  # ratio
+            if r:  # if sizes are not equal
+                interp = cv2.INTER_AREA
+                im=cv2.resize(im,(img_size,img_size),interpolation=interp)
+            if not gray:
+                pass
+    #             img = np.flip(im, 2)
+
+    #         img = im.reshape(1,-1, 3)
+    #         r=img[0,:,0]
+    #         g=img[0,:,1]
+    #         b=img[0,:,2]
+            img=im.ravel(order='K')
+    #         D.append(np.hstack((r,g,b)))
+            D.append(img)
+    #         D.append(b)
+            L.append(iy)
+        
+        return np.array(D),np.array(L)
 
     def loadDataToRam(self):
         self.images,self.labels=[],[]
