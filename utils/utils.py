@@ -8,9 +8,11 @@ import numpy as np
 
 
 class  imageUtils:
-    def __init__(self,data_path):
+    def __init__(self,data_path,classes):
         self.data_path=data_path
+        self.data_path=self.data_path.replace("/",os.sep)
         self.split_seed=47
+        self.classes=classes
 
 
     def grayscale(self,x):
@@ -18,7 +20,8 @@ class  imageUtils:
     
         return gray
 
-    def readImages(self,X,Y,img_size=64,gray=False):
+    def readImages(self,X,Y,img_size=64,gray=False,dataset="Train"):
+        print(f"Reading {len(X)} of {dataset} dataset")
         D,L=[],[]
         for ix,iy in zip(X,Y):
             im=cv2.imread(str(ix))
@@ -47,22 +50,27 @@ class  imageUtils:
         return np.array(D),np.array(L)
 
     def loadDataToRam(self):
+        
         self.images,self.labels=[],[]
-        for classes in self.data_path.glob("*"):
-            for c in classes.glob("*"):
-                self.images.append(c)
-                self.labels.append(self.class_one_hot[classes.name])
+        for c in self.classes:
+            d=Path(self.data_path+os.sep+c)
+            for imp in d.glob("*"):
+                self.images.append(imp)
+                self.labels.append(self.class_one_hot[c])
+        print(f"Loaded {len(self.images)} Image Paths to Ram")
 
     def oneHotEncoding(self):
+        print(f"Encoding Images")
         self.class_one_hot={}
         try:
-            for i,classes in enumerate(self.data_path.glob("*")):
-                self.class_one_hot[classes.name]=i
+            for i,c in enumerate(self.classes):
+                self.class_one_hot[c]=i
         except:
             print("Wrong Path")
         return self.class_one_hot
     
     def split(self,test_size,val_size,val=False,shuffle=True):
+        print(f"Splitting Train and Test Dataset")
         x_train,x_test,y_train,y_test=train_test_split(self.images,self.labels,shuffle=shuffle,test_size=test_size,random_state=self.split_seed)
         if val:
             x_train,x_val,y_train,y_val=train_test_split(x_train,y_train,shuffle=shuffle,test_size=val_size,random_state=self.split_seed)
