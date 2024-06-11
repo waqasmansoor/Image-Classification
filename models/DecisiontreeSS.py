@@ -1,5 +1,5 @@
 import numpy as np
-import math
+from sklearn.metrics import accuracy_score
 
 
 param_combinations = [
@@ -42,20 +42,17 @@ def predict_with_confidence(model, test,top10, threshold=0.9):
 #     return confident_indices, confident_preds
 
 
-def semiSupervised():
+def semiSupervised(DT,X_labeled,Y_labeled,X_unlabeled,Y_unlabeled,Xtest,Ytest,conf):
 
 
-    top10=math.floor((len(X_labeled)+len(X_unlabeled))*0.1)
+    
     train_size={}
-    complexity=5
-    i=8
     niter=0
     images_added=0
     while True:
         niter+=1
         
-        clf=Pipeline([('pca',Clsfr_PCA(0.95,svd_solver="auto",compress=False,random_state=32)),
-                    ("tree",DecisionTreeClassifier(**param_combinations[i]))])
+        clf=DT.model()
         clf=clf.fit(X_labeled,Y_labeled)
         
         pred=clf.predict(X_unlabeled)
@@ -66,7 +63,7 @@ def semiSupervised():
             train_size[ts]={'test':0,'val':acc}
         
         
-        confident_indices, confident_preds,c = predict_with_confidence(clf, X_unlabeled,top10)
+        confident_indices, confident_preds,c = predict_with_confidence(clf, X_unlabeled,conf)
         if len(confident_preds) < 10:
             print(f"Poor Accuracy, TP {confident_preds}")
             break 

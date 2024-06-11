@@ -4,6 +4,8 @@ from models.DecisionTree import DecisionTree
 from sklearn.model_selection import cross_validate,KFold
 from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score
 from models.DecisiontreeSS import param_combinations
+import math
+from models.DecisiontreeSS import semiSupervised
 
 batch_size=8
 num_workers=2
@@ -68,21 +70,22 @@ if __name__ == '__main__':
                 result=DT.predict(classifier,Dt,Lt)
                 print(f"Accuracy: {result}, Error: {1-result}")
     elif opt.model == "ss":
-        Xlabeled,x_test,Ylabeled,y_test,Xunlabeled,Yunlabeled=iu.split(0.3,0.7,val=False,shuffle=True)
+        Xlabeled,x_test,Ylabeled,y_test,Xunlabeled,Yunlabeled=iu.split(0.3,0.7,val=True,shuffle=True)
         
-        D,L=iu.readImages(Xlabeled,Ylabeled,IMG_SIZE,gray=False,dataset="Train")
-        Dv,Lv=iu.readImages(Xunlabeled,Yunlabeled,IMG_SIZE,gray=False,dataset="Validation")
-        Dt,Lt=iu.readImages(x_test,y_test,IMG_SIZE,gray=False,dataset="Test")
-
-        i=0
-        while True:
+    
+        for i in range(len(param_combinations)):
+            D,L=iu.readImages(Xlabeled,Ylabeled,IMG_SIZE,gray=False,dataset="Train")
+            Dv,Lv=iu.readImages(Xunlabeled,Yunlabeled,IMG_SIZE,gray=False,dataset="Validation")
+            Dt,Lt=iu.readImages(x_test,y_test,IMG_SIZE,gray=False,dataset="Test")
+            top10=math.floor((len(D)+len(Dv))*0.1)
             
-            print(f"{i} -------------------")
-            maxDepth=param_combinations[i]
-            minSamplesLeaf=param_combinations[i]
-            minSamplesSplit=param_combinations[i]
-            DT=DecisionTree(opt.pca,maxDepth,minSamplesLeaf,minSamplesSplit,CRITERION)
-
+            maxDepth=param_combinations[i]['max_depth']
+            minSamplesLeaf=param_combinations[i]['min_samples_leaf']
+            minSamplesSplit=param_combinations[i]['min_samples_split']
+            print(f"-----> {i}: Max Depth: {maxDepth}, Min Leaves {minSamplesLeaf}, Min Nodes {minSamplesSplit}, Number of Images to Add: {top10}")
+            model=DecisionTree(opt.pca,maxDepth,minSamplesLeaf,minSamplesSplit,CRITERION)
+            semiSupervised(model,D,L,Dv,Lv,Dt,Lt,top10)
+            print()
             
 
 

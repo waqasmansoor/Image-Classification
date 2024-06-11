@@ -70,12 +70,15 @@ class  imageUtils:
         return self.class_one_hot
     
     def split(self,test_size,val_size,val=False,shuffle=True):
-        print(f"Splitting Train and Test Dataset")
+        if not val:
+            print(f"Splitting Train and Test Dataset")
+            x_train,x_test,y_train,y_test=train_test_split(self.images,self.labels,shuffle=shuffle,test_size=test_size,random_state=self.split_seed)
+            return x_train,x_test,y_train,y_test    
+        
         x_train,x_test,y_train,y_test=train_test_split(self.images,self.labels,shuffle=shuffle,test_size=test_size,random_state=self.split_seed)
-        if val:
-            x_train,x_val,y_train,y_val=train_test_split(x_train,y_train,shuffle=shuffle,test_size=val_size,random_state=self.split_seed)
-            return x_train,x_test,y_train,y_test,x_val,y_val
-        return x_train,x_test,y_train,y_test
+        x_train,x_val,y_train,y_val=train_test_split(x_train,y_train,shuffle=shuffle,test_size=val_size,random_state=self.split_seed)
+        return x_train,x_test,y_train,y_test,x_val,y_val
+        
     
     
 
