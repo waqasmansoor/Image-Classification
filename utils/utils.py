@@ -3,6 +3,8 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 import cv2
 import numpy as np
+import random
+import torch
 
 
 
@@ -98,8 +100,45 @@ def rename(classes:list,path:str)->None:
                 print(f"{path} not exists")
             
 
+def seed_worker(worker_id):# class LoadImages(Dataset):
+        
+    """
+    Sets the seed for a dataloader worker to ensure reproducibility, based on PyTorch's randomness notes.
+
+    See https://pytorch.org/docs/stable/notes/randomness.html#dataloader.
+    """
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 
+
+
+
+def select_device():
+    if torch.cuda.is_available():  # prefer GPU if available
+        arg = "cuda:0"
+    else:  # revert to CPU
+        arg = "cpu"
+
+    return torch.device(arg)
+
+def model_info(model, verbose=False, imgsz=640):
+    """
+    Prints model summary including layers, parameters, gradients, and FLOPs; imgsz may be int or list.
+
+    Example: img_size=640 or img_size=[640, 320]
+    """
+    n_p = sum(x.numel() for x in model.parameters())  # number parameters
+    n_g = sum(x.numel() for x in model.parameters() if x.requires_grad)  # number gradients
+    if verbose:
+        print(f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}")
+        for i, (name, p) in enumerate(model.named_parameters()):
+            name = name.replace("module_list.", "")
+            print(
+                "%5g %40s %9s %12g %20s %10.3g %10.3g"
+                % (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std())
+            )
 
 if __name__ == "__main__":
     data=Path("C:/Users/PC/Desktop/Masters/Sem 4/COMP 6761/project/data")
