@@ -46,3 +46,15 @@ We use the following hyperparamters to analyse Semi-supervised learning with Dec
 - Max Depth [5,6,7,8]
 - Min Leaves [2,2,25,40]
 - Min Nodes [1,10,50]
+
+## CNN
+Run Convolutional Neural Network on the Train Dataset
+```shell
+python main.py --model cnn
+```
+### Inference
+We can predict the test and val dataset on the best trained model by using the following code
+```shell
+python validate.py
+```
+
